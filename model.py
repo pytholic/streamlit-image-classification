@@ -46,7 +46,7 @@ class Model(nn.Module):
         x = x.view(-1, self._to_linear)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        return F.softmax(x, dim=1)
 
 
 class Classifier(pl.LightningModule):
@@ -62,13 +62,13 @@ class Classifier(pl.LightningModule):
         x = self.model(x)
         return x
 
-    def cross_entropy_loss(self, logits, labels):
+    def nll_loss(self, logits, labels):
         return F.nll_loss(logits, labels)
 
     def training_step(self, train_batch, batch_idx):
         x, y = train_batch
         logits = self.model(x)
-        loss = self.cross_entropy_loss(logits, y)
+        loss = self.nll_loss(logits, y)
         acc = self.accuracy(logits, y)
         self.log("accuracy/train_accuracy", acc)
         self.log("loss/train_loss", loss)
@@ -77,7 +77,7 @@ class Classifier(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
         x, y = val_batch
         logits = self.model(x)
-        loss = self.cross_entropy_loss(logits, y)
+        loss = self.nll_loss(logits, y)
         acc = self.accuracy(logits, y)
         self.log("accuracy/val_accuracy", acc)
         self.log("loss/val_loss", loss)

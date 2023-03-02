@@ -57,16 +57,29 @@ sample_images = {
 
 # Define the function to make predictions on an image
 def predict(image):
-    image = preprocess(image).unsqueeze(0)
+    try:
+        image = preprocess(image).unsqueeze(0)
 
-    # Prediction
-    # Make a prediction on the image
-    with torch.no_grad():
-        output = model(image)
-        pred = output.argmax(dim=1).item()
+        # Prediction
+        # Make a prediction on the image
+        with torch.no_grad():
+            output = model(image)
+            # convert to probabilities
+            probabilities = torch.nn.functional.softmax(torch.exp(output[0]), dim=0)
+            print(probabilities)
+            topk_prob, topk_label = torch.topk(probabilities, 3)
 
-    # Return the predicted label
-    return labels[pred]
+            # convert the predictions to a list
+            predictions = []
+            for i in range(topk_prob.size(0)):
+                prob = topk_prob[i].item()
+                label = topk_label[i].item()
+                predictions.append((prob, label))
+
+            return predictions
+    except Exception as e:
+        print(f"Error predicting image: {e}")
+        return []
 
 
 # Define the Streamlit app
@@ -79,23 +92,39 @@ def app():
     # # Add a selectbox to choose from sample images
     sample = st.selectbox("Or choose from sample images:", list(sample_images.keys()))
 
-    # Create an empty placeholder for the label
-    label_placeholder = st.empty()
-
     # If an image is uploaded, make a prediction on it
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, caption="Uploaded Image.", use_column_width=True)
-        pred = predict(image)
+        predictions = predict(image)
 
     # If a sample image is chosen, make a prediction on it
     elif sample:
         image = Image.open(sample_images[sample])
         st.image(image, caption=sample.capitalize() + " Image.", use_column_width=True)
-        pred = predict(image)
+        predictions = predict(image)
 
-    # Update the label placeholder with the predicted label
-    label_placeholder.text(f"The predicted label is {pred}.")
+    # Show the top 3 predictions with their probabilities
+    if predictions:
+        st.write("Top 3 predictions:")
+        for i, (prob, label) in enumerate(predictions):
+            st.write(f"{i+1}. {labels[label]} ({prob*100:.2f}%)")
+
+            # Show progress bar with probabilities
+            st.markdown(
+                """
+                <style>
+                .stProgress .st-b8 {
+                    background-color: orange;
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
+            st.progress(prob)
+
+    else:
+        st.write("No predictions.")
 
 
 # Run the app
