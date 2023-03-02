@@ -5,4 +5,5 @@
 *.JPEG
 *.PNG
 *.log
+*.ckpt
 logs/
