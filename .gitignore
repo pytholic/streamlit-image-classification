@@ -1,0 +1,8 @@
+*.zip
+*.jpeg
+*.jpg
+*.png
+*.JPEG
+*.PNG
+*.log
+logs/
