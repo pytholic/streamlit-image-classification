@@ -17,15 +17,12 @@ from config.config import logger
 from dataloader import *
 from model import Classifier
 
-# Get mean and std
-mean = (0.5179441571235657, 0.5002516508102417, 0.41238734126091003)
-std = (0.2625972032546997, 0.2575567364692688, 0.27541598677635193)
 
 # Preprocessing function
 def get_transform(dataset):
 
     resize = A.Resize(224, 224)
-    normalize = A.Normalize(mean=mean, std=std)
+    normalize = A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
     bright_contrast = A.RandomBrightnessContrast(
         brightness_limit=0.1, contrast_limit=0.1, p=0.2
     )

@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 import torch
 import torchmetrics
+import torchvision.models as models
 from simple_parsing import ArgumentParser
 from torch import nn
 from torch.nn import functional as F
@@ -14,15 +15,17 @@ args = args_namespace.options
 
 # Model class
 class Model(nn.Module):
-    def __init__(self, input_shape):
+    def __init__(self, input_shape, weights=args.weights):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(3, 32, 5)
-        self.conv2 = nn.Conv2d(32, 64, 5)
-        self.conv3 = nn.Conv2d(64, 128, 3)
-        self.conv4 = nn.Conv2d(128, 256, 3)
-        self.dropout1 = nn.Dropout2d(0.25)
-        self.dropout2 = nn.Dropout2d(0.25)
+        self.feature_extractor = models.resnet18(weights=weights)
+
+        if weights:
+            # layers are frozen by using eval()
+            self.feature_extractor.eval()
+            # freeze params
+            for param in self.feature_extractor.parameters():
+                param.requires_grad = False
 
         n_size = self._get_conv_output(input_shape)
 
@@ -38,12 +41,7 @@ class Model(nn.Module):
         return n_size
 
     def convs(self, x):
-        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv3(x)), (2, 2))
-        x = self.dropout1(x)
-        x = F.max_pool2d(F.relu(self.conv4(x)), (2, 2))
-        x = self.dropout2(x)
+        x = self.feature_extractor(x)
         return x
 
     def forward(self, x):
@@ -58,7 +56,7 @@ class Classifier(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.model = Model(input_shape=(3, 224, 224))
+        self.model = Model(input_shape=args.input_shape)
         self.accuracy = torchmetrics.Accuracy(
             task="multiclass", num_classes=args.num_classes
         )
@@ -89,4 +87,11 @@ class Classifier(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=args.learning_rate)
-        return optimizer
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", patience=7
+        )
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": scheduler,
+            "monitor": "loss/val_loss",
+        }
