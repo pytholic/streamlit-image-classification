@@ -33,7 +33,7 @@ class Model(nn.Module):
         batch_size = 1
         tmp_input = torch.autograd.Variable(torch.rand(batch_size, *shape))
 
-        output_feat = self._forward_features(tmp_input)
+        output_feat = self.convs(tmp_input)
         n_size = output_feat.data.view(batch_size, -1).size(1)
         return n_size
 
