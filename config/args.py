@@ -14,4 +14,4 @@ class Args:
     # Total numebr of classes
     num_classes: int = 10
     # Maximum number of training epochs
-    max_epochs: int = 5
+    max_epochs: int = 500

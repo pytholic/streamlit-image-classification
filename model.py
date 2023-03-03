@@ -17,11 +17,13 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(3, 32, 5)
+        self.conv1 = nn.Conv2d(3, 32, 7)
         self.conv2 = nn.Conv2d(32, 64, 5)
-        self.conv3 = nn.Conv2d(64, 128, 3)
+        self.conv3 = nn.Conv2d(64, 128, 5)
+        self.conv4 = nn.Conv2d(128, 256, 5)
+        self.conv5 = nn.Conv2d(256, 512, 3)
         self.dropout1 = nn.Dropout2d(0.25)
-        self.dropout2 = nn.Dropout2d(0.5)
+        self.dropout2 = nn.Dropout2d(0.25)
 
         x = torch.randn(3, 224, 224).view(-1, 3, 224, 224)
         self._to_linear = None
@@ -32,10 +34,12 @@ class Model(nn.Module):
 
     def convs(self, x):
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        x = self.dropout1(x)
         x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2))
-        x = self.dropout2(x)
+        x = self.dropout1(x)
         x = F.max_pool2d(F.relu(self.conv3(x)), (2, 2))
+        x = F.max_pool2d(F.relu(self.conv4(x)), (2, 2))
+        x = self.dropout2(x)
+        x = F.max_pool2d(F.relu(self.conv5(x)), (2, 2))
 
         if self._to_linear is None:
             self._to_linear = x[0].shape[0] * x[0].shape[1] * x[0].shape[2]
@@ -46,7 +50,7 @@ class Model(nn.Module):
         x = x.view(-1, self._to_linear)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
-        return F.softmax(x, dim=1)
+        return F.log_softmax(x, dim=1)
 
 
 class Classifier(pl.LightningModule):
@@ -83,5 +87,5 @@ class Classifier(pl.LightningModule):
         self.log("loss/val_loss", loss)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=args.learning_rate)
+        optimizer = torch.optim.SGD(self.parameters(), lr=args.learning_rate)
         return optimizer

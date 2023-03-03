@@ -62,8 +62,8 @@ def prepare_dataset(data_dir):
 # Sanity check subset function
 def create_subset(trainset, valset):
 
-    train_subset = Subset(trainset, range(50))
-    val_subset = Subset(valset, range(10))
+    train_subset = Subset(trainset, range(10))
+    val_subset = Subset(valset, range(1))
 
     return train_subset, val_subset
 
@@ -102,17 +102,16 @@ def main():
     # Prepare dataset
     logger.info("Preparing datasets...")
     trainset, valset = prepare_dataset(data_dir=config.DATA_DIR)
+    logger.info(
+        """Total training images: {len(trainset)}
+Total validation images: {len(valset)}"""
+    )
 
     # Create subset
-    train_subset, val_subset = create_subset(trainset, valset)
-
-    # logger.debug(len(train_subset))
-    # logger.debug(len(val_subset))
+    # train_subset, val_subset = create_subset(trainset, valset)
 
     # Create dataloaders
-    train_dataloader, val_dataloader = create_dataloaders(
-        args, train_subset, val_subset
-    )
+    train_dataloader, val_dataloader = create_dataloaders(args, trainset, valset)
 
     # Initialize clearml task
     logger.info("Initializing clearml task...")
