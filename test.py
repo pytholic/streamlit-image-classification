@@ -1,3 +1,5 @@
+import glob
+
 import albumentations as A
 import matplotlib.pyplot as plt
 import numpy as np
@@ -66,4 +68,6 @@ def test_image(model, image_path, labels):
 
 
 # Call the test function
-test_image(model, "./test.jpeg", labels=labels)
+test_images = glob.glob("./test_images/*")
+for img in test_images:
+    test_image(model, img, labels=labels)

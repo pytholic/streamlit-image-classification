@@ -18,7 +18,7 @@ from PIL import Image
 from model import Classifier
 
 # Load the model
-model = Classifier.load_from_checkpoint("./models/checkpoint.ckpt")
+model = Classifier.load_from_checkpoint("./models/checkpoint_old.ckpt")
 model.eval()
 
 # Define labels
@@ -48,10 +48,10 @@ def preprocess(image):
 
 # Define the sample images
 sample_images = {
+    "butterfly": "./test_images/butterfly.jpg",
+    "cat": "./test_images/cat.jpg",
     "dog": "./test_images/dog.jpeg",
-    "cat": "./test_images/cat.jpeg",
-    "butterfly": "./test_images/butterfly.jpeg",
-    "elephant": "./test_images/elephant.jpg",
+    "squirrel": "./test_images/squirrel.jpeg",
     "horse": "./test_images/horse.jpeg",
 }
 
@@ -65,8 +65,8 @@ def predict(image):
         with torch.no_grad():
             output = model(image)
             # convert to probabilities
-            probabilities = torch.nn.functional.softmax(torch.exp(output[0]), dim=0)
-            print(probabilities)
+            probabilities = torch.nn.functional.softmax(output[0])
+
             topk_prob, topk_label = torch.topk(probabilities, 3)
 
             # convert the predictions to a list
