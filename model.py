@@ -48,7 +48,7 @@ class Model(nn.Module):
 
     def forward(self, x):
 
-        x = self._forward_features(x)
+        x = self.convs(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return F.log_softmax(x, dim=1)
@@ -58,7 +58,7 @@ class Classifier(pl.LightningModule):
     def __init__(self):
         super().__init__()
 
-        self.model = Model()
+        self.model = Model(input_shape=(3, 224, 224))
         self.accuracy = torchmetrics.Accuracy(
             task="multiclass", num_classes=args.num_classes
         )
