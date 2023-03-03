@@ -10,8 +10,8 @@ class Args:
     # Learning rate for the optimizer
     learning_rate: float = 1e-3
     # Training batch size
-    batch_size: int = 32
+    batch_size: int = 64
     # Total numebr of classes
     num_classes: int = 10
     # Maximum number of training epochs
-    max_epochs: int = 500
+    max_epochs: int = 100

@@ -17,12 +17,15 @@ from config.config import logger
 from dataloader import *
 from model import Classifier
 
+# Get mean and std
+mean = (0.5179441571235657, 0.5002516508102417, 0.41238734126091003)
+std = (0.2625972032546997, 0.2575567364692688, 0.27541598677635193)
 
 # Preprocessing function
 def get_transform(dataset):
 
     resize = A.Resize(224, 224)
-    normalize = A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+    normalize = A.Normalize(mean=mean, std=std)
     bright_contrast = A.RandomBrightnessContrast(
         brightness_limit=0.1, contrast_limit=0.1, p=0.2
     )
@@ -41,7 +44,7 @@ def get_transform(dataset):
     to_tensor = ToTensorV2()
 
     if dataset == "train":
-        return A.Compose([resize, normalize, hor_flip, rotate, translate, to_tensor])
+        return A.Compose([resize, normalize, to_tensor])
     elif dataset == "val":
         return A.Compose([resize, normalize, to_tensor])
 
@@ -62,8 +65,8 @@ def prepare_dataset(data_dir):
 # Sanity check subset function
 def create_subset(trainset, valset):
 
-    train_subset = Subset(trainset, range(10))
-    val_subset = Subset(valset, range(1))
+    train_subset = Subset(trainset, range(100))
+    val_subset = Subset(valset, range(5))
 
     return train_subset, val_subset
 
@@ -73,9 +76,11 @@ def create_dataloaders(args, train_subset, val_subset):
     from torch.utils.data import DataLoader
 
     train_dataloader = DataLoader(
-        train_subset, batch_size=args.batch_size, num_workers=24
+        train_subset, batch_size=args.batch_size, num_workers=24, shuffle=True
     )
-    val_dataloader = DataLoader(val_subset, batch_size=args.batch_size, num_workers=24)
+    val_dataloader = DataLoader(
+        val_subset, batch_size=args.batch_size, num_workers=24, shuffle=False
+    )
     return train_dataloader, val_dataloader
 
 
@@ -103,7 +108,7 @@ def main():
     logger.info("Preparing datasets...")
     trainset, valset = prepare_dataset(data_dir=config.DATA_DIR)
     logger.info(
-        """Total training images: {len(trainset)}
+        f"""Total training images: {len(trainset)}
 Total validation images: {len(valset)}"""
     )
 
@@ -142,6 +147,7 @@ Total validation images: {len(valset)}"""
             metrics="white",
         ),
         console_kwargs=None,
+        refresh_rate=10,
     )
 
     # Train
@@ -152,6 +158,7 @@ Total validation images: {len(valset)}"""
         default_root_dir=config.LOGS_DIR,
         accelerator=device,
         devices=1,
+        log_every_n_steps=1,
     )
 
     # define classifier

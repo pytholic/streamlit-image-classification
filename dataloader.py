@@ -4,6 +4,7 @@ import os
 import albumentations as A
 import cv2
 import torchvision.transforms as T
+from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader, Dataset
 
 
@@ -46,11 +47,13 @@ class CustomDataset(Dataset):
 def get_transform():
     resize = A.Resize(224, 224)
     normalize = A.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-    return A.Compose([resize, normalize])
+    to_tensor = ToTensorV2()
+    return A.Compose([resize, normalize, to_tensor])
 
 
 if __name__ == "__main__":
-    data_dir = os.path.join(os.path.abspath(__file__ + "/../../"), "data/images/")
+    data_dir = os.path.join(os.path.abspath(__file__ + "/../../"), "data/train/")
+    print(data_dir)
     dataset = CustomDataset(data_dir=data_dir, transforms=get_transform())
     # print(len(dataset))
     # print(dataset[0][0].shape)
@@ -59,5 +62,6 @@ if __name__ == "__main__":
     total_imgs = 0
     for imgs, labels in data_loader:
         total_imgs += int(imgs.shape[0])
+        print(imgs.shape)
         break
     print(total_imgs)
