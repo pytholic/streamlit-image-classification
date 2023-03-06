@@ -18,7 +18,7 @@ from PIL import Image
 from model import Classifier
 
 # Load the model
-model = Classifier.load_from_checkpoint("./models/checkpoint_old.ckpt")
+model = Classifier.load_from_checkpoint("./models/checkpoint.ckpt")
 model.eval()
 
 # Define labels

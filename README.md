@@ -29,7 +29,7 @@ I used <a href="https://clear.ml/docs/latest/docs/">ClearML</a> to monitor my tr
 
 <image src="./resources/plots.png">
 
-**Notes:** I did not spend to much time to improve the models metrics. My main focus was to get a decent model and move towards creating the demo.
+**Notes:** I did not spend to much time to improve the models metrics. My main focus was to get a decent model and move towards creating the demo application.
 
 
 # Usage
@@ -38,6 +38,8 @@ To run locally:
 streamlit run app/app.py
 ```
 
+# Demo
+Check out the live [demo](https://huggingface.co/spaces/pytholic/streamlit-image-classification-demo).
 
-
-*Add demo link
+<br></br>
+<img src="resources/demo.png">
